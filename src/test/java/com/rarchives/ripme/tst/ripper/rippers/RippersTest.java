@@ -2,6 +2,8 @@ package com.rarchives.ripme.tst.ripper.rippers;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import com.rarchives.ripme.ripper.rippers.ChanRipper;
@@ -35,6 +37,7 @@ public class RippersTest {
 
             // Decrease timeout
             Utils.setConfigInteger("page.timeout", 20 * 1000);
+            setTempRipsDirectory();
 
             ripper.setup();
             ripper.markAsTest();
@@ -72,6 +75,7 @@ public class RippersTest {
         try {
             // Decrease timeout
             Utils.setConfigInteger("page.timeout", 20 * 1000);
+            setTempRipsDirectory();
 
             ripper.setup();
             ripper.markAsTest();
@@ -90,6 +94,23 @@ public class RippersTest {
         } finally {
             deleteDir(ripper.getWorkingDir());
         }
+    }
+
+    public void setTempRipsDirectory() {
+        Path rips;
+        if (Files.exists(Path.of("build"))) { // gradle build folder
+            rips = Path.of("build", "rips");
+        } else if (Files.exists(Path.of("target"))) { // maven build folder
+            rips = Path.of("target", "rips");
+        }
+        else { // fallback to temp folder
+            try {
+                rips = Files.createTempDirectory("rips");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        Utils.setConfigString("rips.directory", rips.toAbsolutePath().toString());
     }
 
     /** File extensions that are safe to delete. */
